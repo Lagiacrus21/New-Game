@@ -13,7 +13,7 @@ TagManager:
   - UI
   - 
   - 
-  - 
+  - SolidObjects
   - 
   - 
   - 
@@ -40,4 +40,13 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Base
+    uniqueID: 2143482501
+    locked: 0
+  - name: CollisionObject
+    uniqueID: 3329698295
+    locked: 0
+  - name: Player
+    uniqueID: 615205169
     locked: 0

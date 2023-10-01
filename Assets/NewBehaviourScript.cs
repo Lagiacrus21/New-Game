@@ -1,48 +1,98 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using System.Diagnostics;
 
+[DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
 public class NewBehaviourScript : MonoBehaviour
 {
-    Vector2 input;
+    
+    
+    
+    
+    
+    
     public float speed;
-    public Rigidbody2D rb;
-    public Animator animator;
+
+    private bool isMoving;
+    private Vector2 input; 
+    public LayerMask solidObjectsLayer;
+    private Animator animator;
     bool facingRight = true;
     
-    void Update()
+    private void Awake()
     {
-        input.x = Input.GetAxisRaw("Horizontal");
-        input.y = Input.GetAxisRaw("Vertical");
-        if (input.x != 0 )
-        {
-            input.y = 0;
-        }
+        animator = GetComponent<Animator>();
+    }
 
-        animator.SetFloat("moveX", input.x);
-        animator.SetFloat("moveY", input.y);
-        animator.SetFloat("speed", input.sqrMagnitude);
+    public void Update()
+    {
+        if (!isMoving)
+        {
+            input.x = Input.GetAxisRaw("Horizontal");
+            input.y = Input.GetAxisRaw("Vertical");
+            if(input.x != 0) input.y = 0;
 
-        if (input.x > 0 && !facingRight)
-        {
-            Flip();
+            if (input != Vector2.zero)
+            {
+                animator.SetFloat("moveX", input.x);
+                animator.SetFloat("moveY", input.y);
+
+                if (input.x > 0 && !facingRight)
+                {
+                    Flip();
+                }
+                if (input.x < 0 && facingRight)
+                {
+                    Flip();
+                }
+                
+                
+
+                var targetPos = transform.position;
+                targetPos.x += input.x;
+                targetPos.y += input.y;
+
+                if(IsWalkable(targetPos))
+                    StartCoroutine(Move(targetPos));
+            }
         }
-        if (input.x < 0 && facingRight)
-        {
-            Flip();
-        }
+        animator.SetBool("isMoving", isMoving);
 
     }
 
-    void FixedUpdate()
+    IEnumerator Move(Vector3 targetPos)
     {
-        rb.MovePosition(rb.position + input * speed * Time.fixedDeltaTime);
+        isMoving = true;
+        while ((targetPos - transform.position).sqrMagnitude > Mathf.Epsilon)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, targetPos, speed * Time.deltaTime);
+            yield return null;
+        }
+        transform.position = targetPos;
+        isMoving = false;
+
+        
     }
-    void Flip()
+    private bool IsWalkable(Vector3 targetpos)
+    {
+        if(Physics2D.OverlapCircle(targetpos, 0.1f, solidObjectsLayer ) != null)
+        {
+            return false;
+        }
+        return true;
+    }
+    private void Flip()
     {
         Vector3 currentScale = gameObject.transform.localScale;
         currentScale.x *= -1;
         gameObject.transform.localScale = currentScale;
         facingRight = !facingRight;
+    }
+
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
     }
 }
